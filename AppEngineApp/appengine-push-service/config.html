@@ -1,0 +1,45 @@
+<html>
+    <head>
+        <title>Push Config</title>
+    </head>
+    <body>
+        <form action="/admin/config" method="POST">
+        <h1>Push Config</h1>
+        GCM API Key (Get from Google API Console)<br>
+        <input type="text" name="gcm_api_key" value="{{appconfig.gcm_api_key}}" /><br>
+        <br>
+        GCM Multicast Limit (Maximum is 1000)<br>
+        <input type="text" name="gcm_multicast_limit" value="{{appconfig.gcm_multicast_limit}}" /><br>
+        <br>
+        
+        APNS Multicast Limit (Maximum is 1000)<br>
+        <input type="text" name="apns_multicast_limit" value="{{appconfig.apns_multicast_limit}}" /><br>
+        <br>
+        
+        APNS Mode<br>
+        <select name="apns_test_mode">
+            <option value="True"{% if appconfig.apns_test_mode %} SELECTED{% endif %}>Sandbox Mode</option>
+            <option value="False"{% if not appconfig.apns_test_mode %} SELECTED{% endif %}>Production Mode</option>
+        </select><br>
+        <br>
+        
+        APNS Sandbox Certificate (Generate .pem from .cer then put contents in this field)<br>
+        <textarea name="apns_sandbox_cert" style="width:550px;height:300px;">{{appconfig.apns_sandbox_cert}}</textarea><br>
+        <br>
+        
+        APNS Sandbox Key (Generate .pem from .cer then put contents in this field)<br>
+        <textarea name="apns_sandbox_key" style="width:550px;height:300px;">{{appconfig.apns_sandbox_key}}</textarea><br>
+        <br>
+        
+        APNS Certificate (Generate .pem from .cer then put contents in this field)<br>
+        <textarea name="apns_cert" style="width:550px;height:300px;">{{appconfig.apns_cert}}</textarea><br>
+        <br>
+        
+        APNS Key (Generate .pem from .cer then put contents in this field)<br>
+        <textarea name="apns_key" style="width:550px;height:300px;">{{appconfig.apns_key}}</textarea><br>
+        <br>
+        
+        <input type="submit" name="submit" value="Submit" />
+        </form>
+    </body>
+</html>
