@@ -36,6 +36,10 @@ from appdata import *
 
 appconfig = None
 
+#TODO:
+# - Make this more fail safe -- use Backends and a Task Queue or something so that we can guarantee delivery, and so it doesn't tie up the request when we are broadcasting to a very large number of devices
+# - Properly handle feedback from the APNS Feedback service
+
 def convertToGcmMessage(self, message):
     gcmmessage = {}
     gcmmessage["data"] = {}
@@ -82,7 +86,8 @@ def getAPNs():
         return APNs(use_sandbox=False, cert_file=appconfig.apns_cert, key_file=appconfig.apns_key)
 
 def GetApnsToken(regid):
-    if APNS_TEST_MODE:
+    appconfig = AppConfig.get_or_insert("config")
+    if appconfig.apns_test_mode:
         return ApnsSandboxToken.get_or_insert(regid)
     else:
         return ApnsToken.get_or_insert(regid)
@@ -101,6 +106,7 @@ def sendMulticastApnsMessage(self, apns_reg_ids, apnsmessage):
 def sendSingleApnsMessage(self, message, token):
     apns_reg_ids=[token]
     sendMulticastApnsMessage(self, apns_reg_ids, message)
+
 
 def sendMulticastGcmMessage(self, gcm_reg_ids, gcmmessage):
     appconfig = AppConfig.get_or_insert("config")
@@ -128,6 +134,7 @@ def sendMulticastGcmMessage(self, gcm_reg_ids, gcmmessage):
             token.enabled = True
             token.put()
 
+
 def sendSingleGcmMessage(self, message, token):
     gcm_reg_ids=[token]
     sendMulticastGcmMessage(self, gcm_reg_ids, message)
@@ -151,7 +158,8 @@ def broadcastGcmMessage(self, message):
     
     if len(gcm_reg_ids) > 0:
         sendMulticastGcmMessage(self, gcm_reg_ids, gcmmessage)
-    
+
+
 def broadcastApnsMessage(self, message):
     appconfig = AppConfig.get_or_insert("config")
     apnsmessage = message
@@ -173,11 +181,8 @@ def broadcastApnsMessage(self, message):
         sendMulticastApnsMessage(self, apns_reg_ids, apnsmessage)
 
 
-
+#Sample POST Data -->  message={"request":{"data":{"custom": "json data"},"platforms": [1,2], "ios_message":"This is a test","ios_button_text":"yeah!","ios_badge": -1, "ios_sound": "soundfile", "android_collapse_key": "collapsekey"}}
 class BroadcastMessage(webapp2.RequestHandler):
-    """
-        Sample POST Data -->  message={"request":{"data":{"custom": "json data"},"platforms": [1,2], "ios_message":"This is a test","ios_button_text":"yeah!","ios_badge": -1, "ios_sound": "soundfile", "android_collapse_key": "collapsekey"}}
-    """
     def post(self):
         msg = json.loads(self.request.get("message"))
         if 1 in msg["request"]["platforms"]:
@@ -191,19 +196,18 @@ class BroadcastMessage(webapp2.RequestHandler):
         #Return result
         self.response.write("OK")
 
+
+#Sample POST Data -->  platform=1&token=<device token string>&message={"request":{"data":{"custom": "json data"}, "ios_message":"This is a test","ios_button_text":"yeah!","ios_badge": -1, "ios_sound": "soundfile", "android_collapse_key": "collapsekey"}}
 class SendMessage(webapp2.RequestHandler):
-    """
-        Sample POST Data -->  platform=1&token=<device token string>&message={"request":{"data":{"custom": "json data"}, "ios_message":"This is a test","ios_button_text":"yeah!","ios_badge": -1, "ios_sound": "soundfile", "android_collapse_key": "collapsekey"}}
-    """
-    def post(self):
+   def post(self):
         platform = self.request.get("platform")
         message = self.request.get("message")
         token = self.request.get("token")
         
         #Send a single message to a device token
-        if platform == "1":
+        if platform == "1": #Android
             sendSingleGcmMessage(convertToGcmMessage(self, json.loads(message)), token)
-        elif platform == "2":
+        elif platform == "2": #iOS
             sendSingleApnsMessage(convertToApnsMessage(self, json.loads(message)), token)
                 
         self.response.write("OK")
