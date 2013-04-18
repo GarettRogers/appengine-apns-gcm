@@ -2,9 +2,6 @@
 
 A unified push service for iPhone and Android push notifications that runs on Google App Engine (GAE). This can be used as an alternative to Urban Airship if all you are doing is basic push notifications.
 
-##need help##
-The project runs as-is.. but it was put together really quickly. I will be working on cleaning it up, but I'm looking for other people who would be interested in helping make this project rock solid.  Thanks!
-
 ##how to deploy##
 1. Clone or download this project
 2. Create a new app engine project id at http://appengine.google.com
