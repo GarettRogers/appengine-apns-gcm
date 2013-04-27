@@ -165,7 +165,7 @@ def broadcastApnsMessage(self, message):
     apnsmessage = message
     
     apns_reg_ids = []
-    q = ApnsToken.query(GcmToken.enabled == True)
+    q = ApnsToken.query(ApnsToken.enabled == True)
     x=0
     
     for token in q.iter():
