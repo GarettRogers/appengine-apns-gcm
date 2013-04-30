@@ -165,7 +165,11 @@ def broadcastApnsMessage(self, message):
     apnsmessage = message
     
     apns_reg_ids = []
-    q = ApnsToken.query(ApnsToken.enabled == True)
+    if appconfig.apns_test_mode:
+        q = ApnsSandboxToken.query(ApnsSandboxToken.enabled == True)
+    else:
+        q = ApnsToken.query(ApnsToken.enabled == True)
+
     x=0
     
     for token in q.iter():
