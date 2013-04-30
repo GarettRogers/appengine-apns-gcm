@@ -121,15 +121,15 @@ def sendMulticastGcmMessage(self, gcm_reg_ids, gcmmessage):
                 # Remove reg_ids from database
                 for reg_id in reg_ids:
                     token = GcmToken.get_or_insert(reg_id)
-                    token.delete()
+                    token.key.delete()
     
     if 'canonical' in response:
         for reg_id, canonical_id in response['canonical'].items():
             # Repace reg_id with canonical_id in your database
             token = GcmToken.get_or_insert(reg_id)
-            token.delete()
+            token.key.delete()
             
-            token = GcmToken(key_name=canonical_id)
+            token = GcmToken.get_or_insert(canonical_id)
             token.gcm_token = canonical_id
             token.enabled = True
             token.put()
@@ -165,7 +165,11 @@ def broadcastApnsMessage(self, message):
     apnsmessage = message
     
     apns_reg_ids = []
-    q = ApnsToken.query(GcmToken.enabled == True)
+    if appconfig.apns_test_mode:
+        q = ApnsSandboxToken.query(ApnsSandboxToken.enabled == True)
+    else:
+        q = ApnsToken.query(ApnsToken.enabled == True)
+
     x=0
     
     for token in q.iter():
