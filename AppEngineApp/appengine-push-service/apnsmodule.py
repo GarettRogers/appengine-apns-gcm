@@ -37,7 +37,8 @@ from appdata import *
 appconfig = None
 
 def GetApnsToken(regid):
-    if APNS_TEST_MODE:
+    appconfig = AppConfig.get_or_insert("config")
+    if appconfig.apns_test_mode:
         return ApnsSandboxToken.get_or_insert(regid)
     else:
         return ApnsToken.get_or_insert(regid)
