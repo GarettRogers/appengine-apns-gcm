@@ -15,7 +15,11 @@ class ApnsSandboxToken(ndb.Model):
     enabled = ndb.BooleanProperty(indexed=True, default=True)
     registration_date = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
 
-class ApnsTags(ndb.Model):
+class ApnsTag(ndb.Model):
     token = ndb.KeyProperty(kind=ApnsToken, repeated=True)
+    tag = ndb.StringProperty(indexed=True, required=True)
+
+class ApnsSandboxTag(ndb.Model):
+    token = ndb.KeyProperty(kind=ApnsSandboxToken)
     tag = ndb.StringProperty(indexed=True, required=True)
 

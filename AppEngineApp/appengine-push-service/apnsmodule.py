@@ -65,7 +65,38 @@ class APNSUnregister(webapp2.RequestHandler):
             token.enabled = False
             token.put()
 
+class APNSTagHandler(webapp2.RequestHandler):
+    def post(self):
+        tagid = self.request.get("tagid")
+        regid = self.request.get("regid")
+            
+        appconfig = AppConfig.get_or_insert("config")
+            
+        if appconfig.apns_test_mode:
+            token = GetApnsToken(regid)
+            sandboxtag = ApnsSandboxTag.get_or_insert(tagid + regid, tag=tagid, token=token.key)
+
+        else:
+            token = GetApnsToken(regid)
+            prodtag = ApnsTag.get_or_insert(tagid + regid, tag=tagid, token=token.key)
+            
+                
+    def delete(self):
+        tagid = self.request.get("tagid")
+        regid = self.request.get("regid")
+
+        appconfig = AppConfig.get_or_insert("config")
+        
+        if appconfig.apns_test_mode:
+            sandboxtag = ApnsSandboxTag.get_or_insert(tagid + regid)
+            sandboxtag.key.delete()
+        
+        else:
+            prodtag = ApnsTag.get_or_insert(tagid + regid)
+            prodtag.key.delete()
+
 app = webapp2.WSGIApplication([
+    ('/apns/tag', APNSTagHandler),
     ('/apns/register', APNSRegister),
     ('/apns/unregister', APNSUnregister)
 ], debug=True)

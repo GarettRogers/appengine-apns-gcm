@@ -69,7 +69,7 @@ def convertToApnsMessage(self, message):
     if 'ios_badge' in message["request"]:
         apnsmessage["badge"] = message["request"]["ios_badge"]
 
-    if 'ios_message' in message["request"] and 'ios_button_texst' in message["request"]:
+    if 'ios_message' in message["request"] and 'ios_button_text' in message["request"]:
         apnsmessage["alert"] = PayloadAlert(message["request"]["ios_message"], action_loc_key=message["request"]["ios_button_text"])
     else:
         if 'ios_message' in message["request"]:
@@ -200,6 +200,24 @@ class BroadcastMessage(webapp2.RequestHandler):
         #Return result
         self.response.write("OK")
 
+class BroadcastMessageToTag(webapp2.RequestHandler):
+    def post(self):
+        msg = json.loads(self.request.get("message"))
+        if 1 in msg["request"]["platforms"]:
+            #Send to Android devices using GCM
+            broadcastGcmMessage(self, convertToGcmMessage(self, msg))
+        
+        if 2 in msg["request"]["platforms"]:
+            #Send to iOS devices using APNS
+            tagid = self.request.get("tagid")
+            
+            q = ApnsSandboxTag.query(ApnsSandboxTag.tag == tagid)
+            for tag in q.iter():
+                sendSingleApnsMessage(self, convertToApnsMessage(self, msg), tag.token.get().apns_token)
+            
+        #Return result
+        self.response.write("OK")
+
 
 #Sample POST Data -->  platform=1&token=<device token string>&message={"request":{"data":{"custom": "json data"}, "ios_message":"This is a test","ios_button_text":"yeah!","ios_badge": -1, "ios_sound": "soundfile", "android_collapse_key": "collapsekey"}}
 class SendMessage(webapp2.RequestHandler):
@@ -217,6 +235,7 @@ class SendMessage(webapp2.RequestHandler):
         self.response.write("OK")
 
 app = webapp2.WSGIApplication([
+    ('/push/tagbroadcast', BroadcastMessageToTag),
     ('/push/broadcast', BroadcastMessage),
     ('/push/send', SendMessage)
 ], debug=True)
