@@ -204,9 +204,12 @@ class BroadcastMessageToTag(webapp2.RequestHandler):
     def post(self):
         msg = json.loads(self.request.get("message"))
         if 1 in msg["request"]["platforms"]:
-            #Send to Android devices using GCM
-            broadcastGcmMessage(self, convertToGcmMessage(self, msg))
-        
+            tagid = self.request.get("tagid")
+            
+            q = GcmTag.query(GcmTag.tag == tagid)
+            for tag in q.iter():
+                sendSingleGcmMessage(self, convertToGcmMessage(self, msg), tag.token.get().gcm_token)
+    
         if 2 in msg["request"]["platforms"]:
             #Send to iOS devices using APNS
             tagid = self.request.get("tagid")

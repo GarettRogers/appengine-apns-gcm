@@ -10,7 +10,7 @@ class GcmToken(ndb.Model):
     enabled = ndb.BooleanProperty(indexed=True, default=True)
     registration_date = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
 
-class GcmTags(ndb.Model):
-    token = ndb.KeyProperty(kind=GcmToken, repeated=True)
+class GcmTag(ndb.Model):
+    token = ndb.KeyProperty(kind=GcmToken)
     tag = ndb.StringProperty(indexed=True, required=True)
 

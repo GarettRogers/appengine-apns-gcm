@@ -54,8 +54,28 @@ class GCMUnregister(webapp2.RequestHandler):
         token.enabled = False
         token.put()
 
+class GCMTagHandler(webapp2.RequestHandler):
+    def post(self):
+        tagid = self.request.get("tagid")
+        regid = self.request.get("regid")
+        
+        appconfig = AppConfig.get_or_insert("config")
+        
+        token = GcmToken.get_or_insert(regid)
+        tag = GcmTag.get_or_insert(tagid + regid, tag=tagid, token=token.key)
+    
+    
+    def delete(self):
+        tagid = self.request.get("tagid")
+        regid = self.request.get("regid")
+        
+        appconfig = AppConfig.get_or_insert("config")
+        
+        tag = GcmTag.get_or_insert(tagid + regid)
+        tag.key.delete()
 
 app = webapp2.WSGIApplication([
+    ('/gcm/tag', GCMTagHandler),
     ('/gcm/register', GCMRegister),
     ('/gcm/unregister', GCMUnregister)
 ], debug=True)
